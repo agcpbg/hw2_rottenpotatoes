@@ -10,17 +10,31 @@ class MoviesController < ApplicationController
 
     @all_ratings = Movie.all_ratings
 
+    redirect = false
+
     if params[:sort]
       @sort = params[:sort]
+    elsif session[:sort]
+      @sort = session[:sort]
+      redirect = true
     end
 
     if params[:ratings]
       @ratings = params[:ratings]
+    elsif session[:ratings]
+      @ratings = session[:ratings]
+      redirect = true
     else
       @ratings = {}
       @all_ratings.each do |r|
         @ratings[r] = 1
       end
+      redirect = true
+    end
+
+    if redirect
+      flash.keep
+      redirect_to movies_path(:sort => @sort, :ratings => @ratings)
     end
 
     Movie.find(:all, :order => @sort ? @sort : :id).each do |m|
@@ -28,6 +42,9 @@ class MoviesController < ApplicationController
         (@movies ||= []) << m
       end
     end
+
+    session[:sort] = @sort
+    session[:ratings] = @ratings
 
   end
 
